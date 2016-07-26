@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+	<title>位置</title>
+	<script src='http://webapi.amap.com/maps?v=1.3&key=56635e96a5b80dc54fc54a4fa9e7d4d3&number=1231231'></script>
+	<script src='js/amap2.js'></script>
+	<style>
+		#mapContent .amap-logo,#mapContent .amap-copyright{display:none;}
+		*{margin:0;padding:0}
+		html,body{width:100%;height:100%;}
+		.head{position:relative;width:100%;padding:8px 10px;height:auto;background:#E7E6E6;box-sizing: border-box;}
+		.head .search_div{position:relative;width:100%;height:30px;}
+		.head .search_div #search_word{  width: 100%; height: 30px;-webkit-border-radius: 5px;border-radius: 5px;border: 1px solid #ccc; 
+										 color: #7d7d7d;background-image: url(images/search.png);   box-sizing: border-box;
+										 background-repeat: no-repeat; background-position: 10px center;background-size: 16px; 
+										 padding-left: 30px; padding-right: 30px;}
+		
+		#mapContent{width:100%;height:40%;position:relative}
+		#mm{position:absolute;width:32px;height:34px;background:url("http://webapi.amap.com/images/marker_sprite.png");left:50%;top:50%;z-index:9;
+		    margin-left: -10px;	margin-top: -32px;}
+		
+		
+		#addressList{display:block;position:absolute;top:50%;height:50%;width:100%;overflow:scroll;font-family:"微软雅黑" arial	}
+		#addressList li{display:block;width:98%;padding:2px 1%;}
+		#addressList span{display:inline-block;width:100%;}
+		#addressList .title{height:15px;vertical-align:bottom;font-size:0.8rem;  text-indent: 0.5em;}
+		#addressList .info{height:18px;line-height:18px;font-size:0.7rem;color:#666;padding-bottom:2px;border-bottom: 1px solid #D0CDCD;  text-indent: 0.5em;}
+        #addressList .active{ background:#F2F2F2;}
+		
+        #searchResult{display:none;position:absolute;width:100%;height:100%;left:0;top:38px;background:white;z-index:10001;}
+	</style>
+</head>
+<body>
+	<div class="head">
+		<div class="search_div">
+			<input id="search_word" name="" type="text" placeholder="搜索地点">
+		</div>
+	</div>
+	<div id="mapContent">
+		<div id="mm"></div>
+	</div>
+	<ul id="addressList">
+	</ul>
+	<div id="searchResult">
+    	<div class="addressInfo">
+			<a href="javascript:;" data="霍营(地铁站)" class="hover">
+				<em>霍</em>营(地铁站)
+			</a>
+		</div>
+    </div>
+</body>
+<script>
+	(function(){
+		var gdMap=mapObj.newClass("mapContent");
+		gdMap.drawMap("mapContent",drawList);
+		var mapDiv=document.getElementById("mapContent");
+		var nearPlace=document.getElementById("addressList");
+		var mmPoint={};
+			mmPoint.left=parseInt(getComputedStyle(mapDiv)["width"])/2;
+			mmPoint.top=parseInt(getComputedStyle(mapDiv)["height"])/2;
+		
+		function drawList(lat,lng)
+		{
+			gdMap.getAddress(lat,lng,function(data){
+				html="";
+				if(data.state==1){
+					html+="<li class='active'><span class='title'>[当前位置]</span><span class='info'>"+data.address.regeocode.formattedAddress+"</span></li>";
+					
+					var pois=data.address.regeocode.pois;
+					for(var i=0;i<pois.length;i++)
+					{
+						var addressInfo=pois[i].address?pois[i].address:pois[i].businessArea;
+						
+                        var lnglat=pois[i].location.lng+","+pois[i].location.lat;
+						html+="<li lnglat='"+lnglat+"'><span class='title'>"+(addressInfo?addressInfo:("位置"+(i+1)))+"</span><span class='info'>"+pois[i].name+"</span></li>";
+					}
+				}
+				nearPlace.innerHTML=html;   
+			});
+		}
+		
+		function draw_gd_position(e){
+			var keyWord=input_search.value
+			if(keyWord.length>0)
+			{
+				car_position_head.style["display"]="none";
+				gdMap.autoComplete(keyWord,function(status,data){
+					if(status=="complete")
+					{
+						var resultStr = "";
+						var tipArr = data.tips;
+						if (tipArr&&tipArr.length>0) {                 
+							for (var i = 0; i < tipArr.length; i++) {
+								var name=tipArr[i].name.replace(keyWord,"<em>"+keyWord+"</em>");
+								resultStr+="<div class='mui-table-view mui-media-body xztcw_pop_layout_list'>";
+								resultStr+="<a href='javascript:;' data='"+tipArr[i].name+"' class='hover'>"+name+"</a>"
+								resultStr+="</div>";	
+							}
+							if(resultStr.length>0){
+								div_position_list.innerHTML=resultStr;
+								div_car_position.style["display"]="block";
+								div_pop.style["display"]="block";
+							}
+						}
+						else  {
+							div_position_list.innerHTML="";
+							div_car_position.style["display"]="none";
+							div_pop.style["display"]="none";
+						}
+					}
+				});
+			}
+			else{
+				div_position_list.innerHTML=xcHistory;
+				car_position_head.style["display"]="block";
+			}
+			stopPro(e);
+		}
+		mapDiv.addEventListener("touchend",function(event){
+            pointNow=gdMap.containTolnglat({x:mmPoint.left,y:mmPoint.top});
+			drawList(pointNow.lat,pointNow.lng);
+        });
+              
+        nearPlace.addEventListener("touchstart",function(event){
+            	this.touchPiy=event.changedTouches[0].pageY;
+        })
+        
+        nearPlace.addEventListener("touchend",function(event){
+            var changeY=event.changedTouches[0].pageY-this.touchPiy;
+            if(Math.abs(changeY)<5){
+                var node=event.target;
+                while(node.nodeName.toUpperCase()!=="LI")
+                {
+                        node=node.parentNode;
+                }
+                nearPlace.getElementsByClassName("active")[0].className="";
+                node.className="active";
+                gdMap.panTo(node.attributes.lnglat.nodeValue);
+            }
+			stopPro(event);
+        })
+	})();
+	
+	function stopPro(event){
+		event.stopPropagation();
+		event.preventDefault();
+	}
+</script>
+</html>

@@ -1,0 +1,84 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>地理编码</title>  
+	<style type="text/css">
+		body{
+			margin:0;
+			height:100%;
+			width:100%;
+			position:absolute;
+		}
+		#mapContainer{
+			position: absolute;
+			top:0;
+			left: 0;
+			right:0;
+			bottom:0;
+		}
+		
+		#tip{
+			height:120px;
+			background-color:#fff;
+			padding-left:10px;
+			padding-right:10px;
+			position:absolute;
+			bottom:20px;
+			font-size:12px;
+			right:10px;
+			border-radius:3px;
+			width:300px;
+			line-height:20px;
+		}
+		#tip input[type="button"]{
+			margin-top:10px;
+			background-color: #0D9BF2;
+			height:25px;
+			text-align:center;
+			line-height:25px;
+			color:#fff;
+			font-size:12px;
+			border-radius:3px;
+			outline: none;
+			border:0;
+			cursor:pointer;
+		}
+	</style>
+</head>  
+<body>
+    <div id="mapContainer" ></div>
+    <div id="tip"> 
+            <input type="button" value="地理编码" onclick="geocoder()"/>
+        <div id="r_title"><b>地理编码结果:</b></div>
+        <div id="result"> </div>
+    </div>
+    
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key=3937badb6b5199ce15e4d14eeea0d732"></script>
+	<script type="text/javascript">
+		var marker = new Array();
+		var windowsArr = new Array(); 
+		AMap.service(["AMap.Geocoder"], function() { //加载地理编码
+        geocoder = new AMap.Geocoder({
+            radius: 1000,
+            extensions: "all"
+        });
+        //步骤三：通过服务对应的方法回调服务返回结果，本例中通过逆地理编码方法getAddress回调结果
+        geocoder.getAddress(new AMap.LngLat(112.752686,37.692514), function(status, result){
+            //根据服务请求状态处理返回结果
+            if(status=='error') {
+                alert("服务请求出错啦！ ");
+            }
+            if(status=='no_data') {
+                alert("无数据返回，请换个关键字试试～～");
+            }
+            else {
+                console.log(result);
+            }
+        });
+}); 
+	</script> 
+</body>  
+</html>						
+
+	
